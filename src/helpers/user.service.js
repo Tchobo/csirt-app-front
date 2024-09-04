@@ -9,7 +9,7 @@ export const userService = {
 }
 
 //const apiUrl = 'https://rtaxibackendtest.raynis.co'
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = process.env.VUE_APP_API_KEY;
 
 /* function login(email, password) {
 
