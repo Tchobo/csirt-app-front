@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 //export const apiUrl = 'https://rtaxibackendtest.raynis.co' //Prod
 // Local apiUrl
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = process.env.VUE_APP_API_KEY;
 console.log('API URL:', apiUrl);
 
 import store from "../store";
