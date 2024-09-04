@@ -21,7 +21,7 @@ routes:[
     },
     {
       
-      path: '/csirt-home',
+      path: '/csirthome',
       beforeEnter:(to, from, next) =>{
         localStorage.getItem('token') ? next() : next('/')
       },   

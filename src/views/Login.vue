@@ -90,7 +90,7 @@ const onloginUser = async () => {
     if (loginStatus) {
       // Redirect to dashboard or any other route on successful login
       isLoading.value=false
-      router.push('/csirt-home');
+      router.push('/csirthome');
     } else {
      console.log("Connection impossible"); // Handle unsuccessful login (show error message, etc.)
     }
