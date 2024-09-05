@@ -2,13 +2,13 @@
   <div class="relative w-full">
     <nav class="bg-white border-gray-200">
       <div class="max-w-screen-2xl w-100 flex  flex-wrap items-center justify-start space-x-8  py-2 px-10 ">
-        <a href="/" class="flex  items-center space-x-3 rtl:space-x-reverse">
+        <a href="" class="flex  items-center space-x-3 rtl:space-x-reverse">
           <img class=" rounded-full m-0" src="../assets/images/csirt_africa_logo.svg" alt="user photo">
 
         </a>
         <div class="hidden md:flex  ">
           <a href="" deactivate class="text-maroon-deactivate font-mono mr-2 text-[16px] font-medium leading-5 p-2 px-2 py-[10px] rounded-[4px]">Europe</a>
-          <a href="/"  class="text-white bg-maroon-dark font-mono mr-2 text-[16px] leading-5 p-2 px-2 py-[10px] rounded-[4px]">Africa</a>
+          <a href=""  class="text-white bg-maroon-dark font-mono mr-2 text-[16px] leading-5 p-2 px-2 py-[10px] rounded-[4px]">Africa</a>
           <a href="" deactivate class="text-maroon-deactivate font-mono mr-2 text-[16px] leading-5 px-2 py-[10px] rounded-[4px]">Nort America</a>
         </div>
         <div class="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
