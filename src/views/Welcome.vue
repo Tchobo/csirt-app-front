@@ -20,7 +20,7 @@
       </v-tab>
       <v-tab :value="4" class="capitalize">
         <button @click="onLogoutOut"  class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
-  Login
+  Logout
 </button>
 
       </v-tab>
