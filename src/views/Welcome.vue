@@ -47,13 +47,18 @@
         <v-expansion-panels
     v-model="expandedPanels"
     :disabled="disabled"
-    multiple
+    
     variant="accordion"
     class="overflow-y-scroll h-[540px]"
   >
     <v-expansion-panel
       v-for="csirt in filteredCsirts"
       :key="csirt.id"
+      :value="csirt.id"
+      :ref="`panel-${csirt.id}`" 
+     
+      
+    
     >
       <v-expansion-panel-title>
         <div class="flex flex-col">
@@ -159,7 +164,7 @@ import Hero from '../components/Hero.vue';
 import SearchForm from '../components/SearchForm.vue';
 import leaflet from "leaflet"
 import store from "../store";
-import { onMounted, ref, onBeforeMount, computed, watch } from "vue"
+import { onMounted, ref, onBeforeMount, computed, watch, nextTick } from "vue"
 
 import customIconUrl from '../assets/images/security_lock.svg';
 import { useRoute, useRouter } from 'vue-router'
@@ -176,6 +181,7 @@ const markersLayer = ref(null);
 // Initialize layer group
 // Use a reactive array to manage expanded panels
 const expandedPanels = ref([]);
+const panelRefs = ref({});
 
 
 
@@ -241,7 +247,7 @@ const filteredCsirts = computed(() => {
     );
   });
 });
- // Function to update map markers
+
 // Method to update map markers based on filtered list
 const updateMapMarkers = () => {
   if (!map.value) return; // Ensure map is initialized
@@ -259,19 +265,32 @@ const updateMapMarkers = () => {
         .bindPopup(`<b>${csirt.name}</b><br>${csirt.description}`)
         .openPopup();
 
-        marker.on('click', () => {
-        selectedCsirt.value = csirt;
-        expandedPanels.value = [csirt.id]; 
-      });
+      
+        // Click event for each marker
+marker.on('click', () => {
+  if (Array.isArray(expandedPanels.value)) {
+  if ( !expandedPanels.value.includes(csirt.id)) {
+    expandedPanels.value.push(csirt.id); // Ajoute l'ID du panneau si non présent
+  } else {
+    expandedPanels.value = expandedPanels.value.filter(id => id !== csirt.id); // Retire l'ID s'il est déjà présent
+  }
+}
+
+  nextTick(() => {
+    const panel = panelRefs.value[`panel-${csirt.id}`];
+    if (panel && panel.$el) {
+          panel.$el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+  });
+});
+
     }
   });
 };
 
-console.log(filteredCsirts);
+
 // Watch for changes in searchFilter to update map markers
-watch(searchFilter, () => {
-  updateMapMarkers();
-});
+
 
 
 // Se déconneter
@@ -305,4 +324,10 @@ const onLogoutOut = ()=>{
     border: none;
     background: rgba(0, 0, 0, 1)!important;
 }
+
+.active-panel {
+  background: rgba(239, 233, 223, 1)!important;
+
+}
+
 </style>
