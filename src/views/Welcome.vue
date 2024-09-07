@@ -300,6 +300,7 @@ marker.on('click', () => {
           panel.$el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
   });
+  
 });
 
     }
