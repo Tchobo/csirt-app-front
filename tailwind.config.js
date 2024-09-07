@@ -12,6 +12,7 @@ export default {
         "maroon-dark":"rgba(123, 90, 36, 1)",
         "update-color":"rgba(102, 102, 102, 1)",
         "csirt-name-color":"rgba(44, 44, 44, 1)",
+        "bg-panel-color":"rgba(239, 233, 223, 1)",
        
         "csirt-site": " rgba(1, 1, 1, 1)",
         "task-bg-blue": "rgba(0, 122, 255, 1)",

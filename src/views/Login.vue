@@ -90,7 +90,7 @@ const errors = ref({});
 const authErrors = ref('');
 const changePasswordVisibility =()=>{
     visible.value = !visible.value
-    console.log("This is the visibility", visible.value);
+    
 }
 
 const validateForm = () => {
@@ -174,9 +174,10 @@ watch(() => loginData.value.email, () => {
 
 <style scoped>
 .bg-image {
-    background-image: url('../assets/images/back_new.svg'); 
-   background-color:#264ECA;
+    background-image: url('../assets/images/svg_login.svg'); 
+   background-color:#825B32;
     background-blend-mode: multiply, screen, darken;
+    width: 1200px;
   
 
 } 
@@ -188,11 +189,12 @@ watch(() => loginData.value.email, () => {
 
 .spnLogin{
     text-transform: none;
+    color: #825B32;
    
 }
 .btnColor{
-    background: white;
-    color: #244BC5;
+    background: #F7EED3;
+    color: #825B32;
     width: 100%;
 }
 input:focus{

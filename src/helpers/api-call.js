@@ -5,7 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-console.log('API URL:', apiUrl);
+
 
 import store from "../store";
 export async function apiRequest(

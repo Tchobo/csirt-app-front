@@ -19,7 +19,7 @@
         <span class="capitalize font-mono text-[12px] font-medium leading-[14px]">Luanguage</span>
       </v-tab>
       <v-tab :value="4" class="capitalize">
-        <button @click="onLogoutOut"  class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+        <button @click="onLogoutOut"  class="btnLogout  text-white font-medium py-2 px-4 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
   Logout
 </button>
 
@@ -42,14 +42,21 @@
         </v-row>
       </v-container>
       <div>
-
+ <!-- Check if filteredCsirts are not ready, show skeleton loader -->
+ <v-skeleton-loader
+      v-if="!filteredCsirts || filteredCsirts.length === 0"
+      type="list-item-avatar"
+      class="mb-3"
+    ></v-skeleton-loader>
 
         <v-expansion-panels
     v-model="expandedPanels"
     :disabled="disabled"
     
+    v-else
+    
     variant="accordion"
-    class="overflow-y-scroll h-[540px]"
+    class="overflow-y-scroll h-[580px]"
   >
     <v-expansion-panel
       v-for="csirt in filteredCsirts"
@@ -57,9 +64,11 @@
       :value="csirt.id"
       :ref="`panel-${csirt.id}`" 
      
+     
       
     
     >
+
       <v-expansion-panel-title>
         <div class="flex flex-col">
           <div class="flex justify-between w-full items-center">
@@ -70,7 +79,8 @@
                 <p class="font-mono text-[10px] leading-3 text-csirt-name-color">{{ csirt.country }}</p>
               </div>
             </div>
-            <a :href="csirt.website" class="flex items-center z-20" target="_blank">
+
+            <a :href="csirt.website"  class="flex items-center z-20" target="_blank">
               <img src="../assets/images/launch_arrow.svg" alt="arrow"> 
               <span class="font-mono text-[10px] ml-1 font-normal leading-8 text-csirt-site">Website</span>
             </a>
@@ -79,40 +89,42 @@
         </div>
       </v-expansion-panel-title>
       <v-expansion-panel-text>
-        <img :src="csirt.image" alt="img" class="w-full h-[230px] object-cover rounded-[6px]">
+       
+        <img :src="csirt.image" else alt="img" class="w-full h-[230px] object-cover rounded-[6px]">
       </v-expansion-panel-text>
+  
     </v-expansion-panel>
   </v-expansion-panels>
   </div>
       </v-window-item>
 
       <v-window-item :value="2">
-        <section class="bg-gray-100 py-12 overflow-y-scroll h-[620px]">
+        <section class="bg-gray-100 py-12 overflow-y-scroll h-[650px]">
   <div class="container mx-auto px-4">
     <div class="text-center">
-      <h2 class="text-3xl font-semibold text-gray-800">À propos des CERT</h2>
-      <p class="mt-4 text-lg text-gray-600">
+      <h2 class="text-2xl font-semibold text-gray-800">À propos des CERT</h2>
+      <p class="mt-4 text-md text-gray-600">
         Les équipes de réponse aux incidents informatiques (CERT) sont des unités d'experts dédiées à la protection contre les cyberattaques. Leur mission est de prévenir, détecter et atténuer les conséquences des attaques pour les individus et les institutions.
       </p>
     </div>
 
-    <div class="mt-10 grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-8">
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h3 class="text-xl font-medium text-gray-700">Protection du réseau</h3>
+    <div class="mt-10 grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6">
+      <div class="bg-white p-6 rounded-md shadow-md">
+        <h3 class="text-lg font-medium text-gray-700">Protection du réseau</h3>
         <p class="mt-2 text-gray-600">
           Les CERT identifient les logiciels malveillants et empêchent leur propagation dans les réseaux, garantissant la sécurité informatique.
         </p>
       </div>
 
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h3 class="text-xl font-medium text-gray-700">Assistance aux victimes</h3>
+      <div class="bg-white p-6 rounded-md shadow-md">
+        <h3 class="text-lg font-medium text-gray-700">Assistance aux victimes</h3>
         <p class="mt-2 text-gray-600">
           Les CERT offrent un soutien rapide et efficace aux individus et institutions touchés par des cyberattaques.
         </p>
       </div>
 
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h3 class="text-xl font-medium text-gray-700">Partenariat public-privé</h3>
+      <div class="bg-white p-6 rounded-md shadow-md">
+        <h3 class="text-lg font-medium text-gray-700">Partenariat public-privé</h3>
         <p class="mt-2 text-gray-600">
           Travaillant au sein d'entreprises privées ou d'institutions publiques, les CERT collaborent souvent avec des agences gouvernementales.
         </p>
@@ -120,7 +132,7 @@
     </div>
 
     <div class="mt-10 text-center">
-      <p class="text-lg text-gray-600">
+      <p class="text-md text-gray-600">
         Au niveau national, les CERT peuvent être dotés du statut d'agences gouvernementales, offrant leur assistance à un large éventail d'entités.
       </p>
     </div>
@@ -268,9 +280,15 @@ const updateMapMarkers = () => {
       
         // Click event for each marker
 marker.on('click', () => {
+
   if (Array.isArray(expandedPanels.value)) {
   if ( !expandedPanels.value.includes(csirt.id)) {
-    expandedPanels.value.push(csirt.id); // Ajoute l'ID du panneau si non présent
+    // Ajoute l'ID du panneau si non présent
+    console.log("la valeur de l'id ", expandedPanels.value);
+    
+    expandedPanels.value.push(csirt.id);
+    
+    
   } else {
     expandedPanels.value = expandedPanels.value.filter(id => id !== csirt.id); // Retire l'ID s'il est déjà présent
   }
@@ -330,4 +348,13 @@ const onLogoutOut = ()=>{
 
 }
 
+
+.v-expansion-panel--active {
+  background-color: rgba(239, 233, 223, 1) !important;
+}
+
+
+.btnLogout{
+  background: #825B32;
+}
 </style>
