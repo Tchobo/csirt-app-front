@@ -1,85 +1,142 @@
-# CSIRT Showcase Application
+# CSIRT Africa — Frontend
 
-## Overview
+Interactive map of **Computer Security Incident Response Teams (CSIRTs)** operating on the African continent. Users explore the CSIRTs by clicking pins on a Leaflet map, filter the list with a search bar, and unlock full descriptions and logos with a lightweight inline login.
 
-The CSIRT Showcase Application is designed to showcase Computer Security Incident Response Teams (CSIRTs) across Africa. The application allows users to view CSIRTs on a map according to their country location, filter the CSIRT list by various attributes, and see detailed information about each CSIRT. The backend is built with Django REST Framework, and the frontend is developed using Vue 3 and Tailwind CSS.
+Companion backend repo: **[csirts-app-api](https://github.com/Tchobo/csirts-app-api)** — Django REST Framework + PostgreSQL + Docker.
+
+---
+
+## Screenshots
+
+### Guest experience — map + teaser list
+Guests immediately see the interactive map and every pin, but each CSIRT card shows only its name, country and website. A short "Log in to see the full description" placeholder pushes the visitor toward the Login tab.
+
+![Guest view — map with CSIRT pins and gated list](docs/screenshots/01-map-guest.png)
+
+### Logged-in experience — full descriptions unlocked
+Once authenticated, the same list renders each CSIRT's full description in place. The tab label flips from **Login** to **Logout**, no page reload needed.
+
+![Authenticated view — descriptions unlocked](docs/screenshots/02-map-logged.png)
+
+### Marker click → auto-scroll + panel opens
+Clicking a marker opens its popup on the map **and** scrolls the right-hand list to the matching card, which auto-expands to reveal the CSIRT logo/image.
+
+![Marker click opens popup, expands panel, and scrolls the list](docs/screenshots/03-marker-detail.png)
+
+### Live search across map and list
+Typing in the search bar filters both the list and the map markers in real time — no submit button, no reload.
+
+![Search filter narrowing both list and map](docs/screenshots/04-search-filter.png)
+
+### Inline login (in-tab)
+The Login tab embeds the auth form directly — the user stays on the map, keeps context, and never leaves the page during login.
+
+![Inline login form embedded in the Login tab](docs/screenshots/05-login-tab.png)
+
+---
 
 ## Features
 
-- **Map Visualization**: Display CSIRTs on a map of Africa based on their geographical location.
-- **Filter List**: Filter the CSIRT list by name, country, website, and description.
-- **Detail View**: View detailed information about each CSIRT.
+- **Interactive Africa map** built on Leaflet + Mapbox tiles, with a custom shield icon per CSIRT and a popup showing name (guest) or name + description (authenticated).
+- **Guest mode** — the map, marker pins, CSIRT names, countries and website links are public. Descriptions and logos are gated behind login.
+- **Inline login / logout tab** — no separate page transition, no lost context; the tab label toggles based on session state.
+- **Live search** — case-insensitive substring match across name, country, website, and description; filters both the list and the map markers together.
+- **Marker → list sync** — clicking a marker scrolls the list to its card, expands the panel and (once logged in) reveals the logo.
+- **Auto-refetch on login** — the CSIRT list is refetched after a successful sign-in so authenticated data replaces the anonymous payload.
+- **Persistent session** — the token lives in `localStorage` and the Vuex store hydrates from it on every mount, so a browser refresh keeps the user signed in.
 
-## Technologies
+---
 
-- **Frontend**: Vue 3, Tailwind CSS
-- **Backend**: Django REST Framework
-- **Deployment**: Netlify
+## Tech stack
 
-## Installation
+| Layer              | Tooling                                                        |
+|--------------------|----------------------------------------------------------------|
+| Framework          | Vue 3 (Composition API, `<script setup>`)                      |
+| Build              | Vite 5                                                         |
+| UI kit             | Vuetify 3                                                      |
+| Utility CSS        | Tailwind CSS 3                                                 |
+| State              | Vuex 4                                                         |
+| Routing            | Vue Router 4                                                   |
+| HTTP               | Axios                                                          |
+| Map & tiles        | Leaflet 1.9 + Mapbox Streets style                             |
+| Icons              | FontAwesome, Vue Material Design Icons, Heroicons              |
+| Deployment target  | Netlify (static SPA build, `_redirects` for history routing)   |
+
+---
+
+## Getting started
 
 ### Prerequisites
 
-Ensure you have the following installed:
-- Node.js
-- npm (Node Package Manager)
+- **Node.js ≥ 18**
+- The backend running locally on `http://localhost:8000` (see [csirts-app-api README](https://github.com/Tchobo/csirts-app-api)).
 
-### Clone the Repository
+### Install & run
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
-
-## Install Dependencies
+git clone https://github.com/Tchobo/csirt-app-front.git
+cd csirt-app-front
 npm install
+npm run dev
+```
 
-##Set Up Environment Variables
-Create a .env file in the root directory with the following content:
-VUE_APP_API_BASE_URL=http://localhost:8000/api
+Open [http://localhost:5173](http://localhost:5173) — you'll land directly on the map in guest mode.
 
-##Running the Application Locally
-1 Start the Development Server
-2 Open in Browser
+### Environment variables
 
-Visit http://localhost:8080 to view the application.
+Both `.env` (local) and `.env.production` (build-time) expose two variables:
 
-##Building for Production
-This command will generate a dist directory with production-ready files.
+```bash
+# Backend API URL — swap for staging / prod as needed.
+VITE_API_URL=http://localhost:8000
 
+# Mapbox access token — pk.* (public) type. Restrict the token to your
+# frontend domain(s) in the Mapbox dashboard so a leak stays harmless.
+VITE_MAPBOX_TOKEN=pk.xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
 
-Deployment on Netlify
-Create a Netlify Account
+For a hosted backend, set `VITE_API_URL` to the deployed API URL (e.g. `https://csirts-app-api.onrender.com`). Grab a Mapbox token from [account.mapbox.com/access-tokens](https://account.mapbox.com/access-tokens/) — the free tier is generous enough for this project.
 
-Sign up for a Netlify account if you do not already have one.
+### Build for production
 
-Connect Your Repository
+```bash
+npm run build     # emits dist/
+npm run preview   # serves the built bundle locally
+```
 
-Log in to Netlify.
-Click on “New site from Git.”
-Connect to your Git repository (GitHub, GitLab, or Bitbucket).
-Configure Build Settings
+---
 
-Build Command: npm run build
-Publish Directory: dist
-Deploy
+## Project structure
 
-Click “Deploy site” to start the deployment process.
-Netlify will automatically build and deploy your application.
-Once deployed, Netlify will provide a live URL for your application.
-Update Environment Variables on Netlify
+```
+src/
+├── assets/            # images, illustrations, custom marker icons
+├── components/        # reusable pieces (Header, Modal, SearchForm, Hero…)
+├── helpers/           # api-call.js — axios wrapper reading VITE_API_URL
+├── router/            # Vue Router — / redirects to /csirthome (public home)
+├── store/             # Vuex — csirtList, userToken, actions, mutations
+└── views/
+    ├── Welcome.vue    # main map + tabs (Location, About, Language, Login/Logout)
+    └── Login.vue      # standalone login page kept for deep links
+```
 
-If your application uses environment variables (e.g., VUE_APP_API_BASE_URL), set them up in Netlify:
+Notable design decisions:
 
-Go to your Netlify dashboard.
-Navigate to your site’s settings.
-Under the “Build & Deploy” section, click “Environment.”
-Add your environment variables here, such as VUE_APP_API_BASE_URL with the appropriate value.
-Verify Deployment
+- **`/` redirects to `/csirthome`** — the home is the map. The auth guard was removed on purpose since guest mode is a first-class experience; keeping it would have created an infinite redirect loop.
+- **Login is embedded in a tab, not a separate route** — the standalone `Login.vue` view is kept as a fallback for direct navigation (bookmarks, deep links), but the primary auth flow lives inside `Welcome.vue`'s Login tab.
+- **Auth state is a `computed` on `store.state.userToken`** — the tab label, gated content, and marker popup HTML all react automatically when the token appears or disappears.
 
-After deployment, visit the provided Netlify URL to ensure everything is working correctly.
-Check the console and network tabs in your browser’s developer tools for any issues.
-Usage
-View CSIRTs on Map: Navigate to the map view to see CSIRTs displayed by their location.
-Filter CSIRT List: Use the search bar to filter CSIRTs by name, country, website, or description.
-View CSIRT Details: Click on any CSIRT in the list or on the map to view detailed information.
+---
 
+## Contributing
+
+1. Fork the repo.
+2. Create a feature branch: `git checkout -b feat/short-name`.
+3. Commit with **Conventional Commits** (`feat(scope): …`, `fix(scope): …`).
+4. Push and open a PR against `main` with a clear description and screenshots for UI changes.
+
+---
+
+## License
+
+MIT.
