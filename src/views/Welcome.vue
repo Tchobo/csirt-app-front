@@ -19,10 +19,9 @@
         <span class="capitalize font-mono text-[12px] font-medium leading-[14px]">Luanguage</span>
       </v-tab>
       <v-tab :value="4" class="capitalize">
-        <button @click="onLogoutOut"  class="btnLogout  text-white font-medium py-2 px-4 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
-  Logout
-</button>
-
+        <span class="capitalize font-mono text-[12px] font-medium leading-[14px]">
+          {{ isLogged ? 'Logout' : 'Login' }}
+        </span>
       </v-tab>
     </v-tabs>
 
@@ -31,7 +30,7 @@
         <v-container  class="flex w-full justify-between items-center">
           <div class="font-mono">
             <h3 class=" text[19px] font-bold leading-5 task-welcom-black text-start">CSIRTs in Africa</h3>
-            <p class="text-[12px] mt-2 font-normal leading-3 text-update-color">Updated on 03/09/2024 18:19:29</p>
+            <p class="text-[12px] mt-2 font-normal leading-3 text-update-color">Updated on 19/8/2026 14:19:29</p>
           </div>
           <a href="#" class="font-mono text-[13px] leading-5  rounded-[4px] btn-search px-[6px] py-[8px] text-white" @click="onSearch">Search</a>
         </v-container>
@@ -62,11 +61,7 @@
       v-for="csirt in filteredCsirts"
       :key="csirt.id"
       :value="csirt.id"
-      :ref="`panel-${csirt.id}`" 
-     
-     
-      
-    
+      :id="`csirt-panel-${csirt.id}`"
     >
 
       <v-expansion-panel-title>
@@ -85,12 +80,18 @@
               <span class="font-mono text-[10px] ml-1 font-normal leading-8 text-csirt-site">Website</span>
             </a>
           </div>
-          <p class="font-roboto font-light text-[16px] leading-5 text-task-welcom-black mt-3 ml-1">{{ csirt.description }}</p>
+          <!-- Description + image panel are locked behind auth. Guests see name,
+               country, and website only — a teaser that pushes them to the Login tab. -->
+          <p v-if="isLogged" class="font-roboto font-light text-[16px] leading-5 text-task-welcom-black mt-3 ml-1">
+            {{ csirt.description }}
+          </p>
+          <p v-else class="font-mono text-[11px] italic text-gray-400 mt-3 ml-1">
+            Log in to see the full description.
+          </p>
         </div>
       </v-expansion-panel-title>
-      <v-expansion-panel-text>
-       
-        <img :src="csirt.image" else alt="img" class="w-full h-[230px] object-cover rounded-[6px]">
+      <v-expansion-panel-text v-if="isLogged">
+        <img :src="csirt.image" alt="img" class="w-full h-[230px] object-cover rounded-[6px]">
       </v-expansion-panel-text>
   
     </v-expansion-panel>
@@ -159,8 +160,62 @@
         </v-container>
       </v-window-item>
 
-      
-    </v-window> 
+      <!-- Tab 4 — auth panel. Renders differently depending on session state:
+           guests see an inline login form; logged-in users see a small
+           "You're signed in" card with a Logout button. Keeping both in the
+           same window slot lets the tab label ('Login' / 'Logout') toggle
+           without any routing gymnastics. -->
+      <v-window-item :value="4">
+        <v-container class="pt-6">
+          <div v-if="!isLogged" class="flex flex-col gap-4">
+            <h3 class="font-mono font-bold text-[16px] leading-5 task-welcom-black text-start">
+              Log in to unlock CSIRT details
+            </h3>
+            <p v-if="authError" class="font-mono text-red-600 text-[12px]">{{ authError }}</p>
+
+            <div class="flex flex-col">
+              <label for="loginEmail" class="font-mono text-[12px] font-medium mb-1">Email</label>
+              <input
+                id="loginEmail"
+                v-model="loginData.email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@company.com"
+                class="font-mono border rounded-md h-[38px] px-3 text-[13px] focus:outline-none focus:border-yellow-800"
+              />
+            </div>
+
+            <div class="flex flex-col">
+              <label for="loginPassword" class="font-mono text-[12px] font-medium mb-1">Password</label>
+              <input
+                id="loginPassword"
+                v-model="loginData.password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="••••••••"
+                class="font-mono border rounded-md h-[38px] px-3 text-[13px] focus:outline-none focus:border-yellow-800"
+                @keydown.enter="onInlineLogin"
+              />
+            </div>
+
+            <v-btn :loading="isAuthLoading" class="btnLogout text-white rounded-full mt-2" @click="onInlineLogin">
+              <span v-if="!isAuthLoading" class="capitalize font-mono text-[13px]">Log in</span>
+            </v-btn>
+          </div>
+
+          <div v-else class="flex flex-col gap-4 items-start">
+            <h3 class="font-mono font-bold text-[16px] leading-5 task-welcom-black">You're signed in</h3>
+            <p class="font-mono text-[12px] text-gray-600">Full CSIRT details are unlocked in the Location tab.</p>
+            <button
+              @click="onLogoutOut"
+              class="btnLogout text-white font-medium py-2 px-4 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+              Logout
+            </button>
+          </div>
+        </v-container>
+      </v-window-item>
+
+    </v-window>
 
   </v-card>
   
@@ -185,7 +240,6 @@ const tab = ref(1); // Default to the first tab
 const map = ref(null)
 const router = useRouter();
 const disabled = ref(false);
-const isLogged = ref(false)
 const clickedSearch = ref(false)
 const searchFilter = ref("")
 const selectedCsirt = ref(null);
@@ -193,8 +247,17 @@ const markersLayer = ref(null);
 // Initialize layer group
 // Use a reactive array to manage expanded panels
 const expandedPanels = ref([]);
-const panelRefs = ref({});
 
+// Inline login state (used by the Login/Logout tab). Kept local — the form
+// only lives in this Welcome view so no reason to push it to a component.
+const loginData = ref({ email: "", password: "" });
+const isAuthLoading = ref(false);
+const authError = ref("");
+
+// Auth state derived from the Vuex store. The store is hydrated from
+// localStorage on mount (see onBeforeMount below) so a refresh keeps the
+// user signed in without a round-trip to the API.
+const isLogged = computed(() => Boolean(store.state.userToken));
 
 
 //Make search input visible
@@ -202,10 +265,13 @@ const onSearch=()=>{
     clickedSearch.value= !clickedSearch.value
 }
 
-// Check if user is logged in
+// Hydrate the store from localStorage so the tab label and gated content
+// reflect the real auth state as soon as the component mounts.
 onBeforeMount(() => {
-    isLogged.value =localStorage.getItem("token") ==null?false:true
-  // Perform actions before component is mounted
+  const token = localStorage.getItem("token");
+  if (token) {
+    store.commit("setLoggedUserToken", token);
+  }
 });
 
 // Get the search component input
@@ -218,8 +284,13 @@ searchFilter.value = search
 onMounted(async ()=>{
      await store.dispatch('getCsirtList') 
     map.value = leaflet.map('map').setView([0, 20], 3.49);
+    // Mapbox access token is read from the env at build time. Even though
+    // pk.* tokens are designed to live in the frontend, keeping it out of the
+    // source (and pinning it to a domain in the Mapbox dashboard) avoids
+    // leaking it via git history / GitHub push protection.
+    const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
     leaflet.tileLayer(
-          "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoicmljb3MiLCJhIjoiY20wbjgwMmY3MDB2dDJxc2RybjRiZHh3eSJ9.3uRjlTnWDSl6D7PwX4uKtA",
+          `https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`,
           {
             attribution:
               'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -227,8 +298,7 @@ onMounted(async ()=>{
             id: "mapbox/streets-v11",
             tileSize: 512,
             zoomOffset: -1,
-            accessToken:
-              "pk.eyJ1Ijoicmljb3MiLCJhIjoiY20wbjgwMmY3MDB2dDJxc2RybjRiZHh3eSJ9.3uRjlTnWDSl6D7PwX4uKtA",
+            accessToken: mapboxToken,
           }
         )
         .addTo(map.value);
@@ -272,35 +342,41 @@ const updateMapMarkers = () => {
   // Add new markers based on filtered list
   filteredCsirts.value.forEach(csirt => {
     if (csirt.location && csirt.location.latitude && csirt.location.longitude) {
+      // Note: no `.openPopup()` here — opening a popup for every marker inside
+      // the loop means only the LAST one stays visible (Leaflet closes previous
+      // popups when a new one opens). Popup opens on user click via bindPopup.
+      // Guests get a name-only popup — description is part of the gated
+      // content that requires login.
+      const popupHtml = isLogged.value
+        ? `<b>${csirt.name}</b><br>${csirt.description}`
+        : `<b>${csirt.name}</b>`;
       const marker =  leaflet.marker([csirt.location.latitude, csirt.location.longitude] , { icon: customIcon })
         .addTo(markersLayer.value)
-        .bindPopup(`<b>${csirt.name}</b><br>${csirt.description}`)
-        .openPopup();
+        .bindPopup(popupHtml);
 
-      
-        // Click event for each marker
+
+        // Click event for each marker — always OPEN the panel (never toggle)
+        // so the description reliably shows, then scroll it into view inside
+        // the CSIRT list container even if the panel sits far down the list.
 marker.on('click', () => {
-
-  if (Array.isArray(expandedPanels.value)) {
-  if ( !expandedPanels.value.includes(csirt.id)) {
-    // Ajoute l'ID du panneau si non présent
-    console.log("la valeur de l'id ", expandedPanels.value);
-    
+  if (Array.isArray(expandedPanels.value) && !expandedPanels.value.includes(csirt.id)) {
     expandedPanels.value.push(csirt.id);
-    
-    
-  } else {
-    expandedPanels.value = expandedPanels.value.filter(id => id !== csirt.id); // Retire l'ID s'il est déjà présent
   }
-}
 
+  // Two nextTicks: 1st lets Vue commit the expandedPanels change, 2nd lets
+  // Vuetify's v-expansion-panel finish its expansion transition so the panel
+  // has its final height before we scroll — otherwise scrollIntoView targets
+  // the collapsed height and lands slightly off.
   nextTick(() => {
-    const panel = panelRefs.value[`panel-${csirt.id}`];
-    if (panel && panel.$el) {
-          panel.$el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+    nextTick(() => {
+      const el = document.getElementById(`csirt-panel-${csirt.id}`);
+      if (el) {
+        // block: "nearest" avoids scrolling if the panel is already visible,
+        // and only scrolls the closest scrollable ancestor (the list column).
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
   });
-  
 });
 
     }
@@ -308,19 +384,57 @@ marker.on('click', () => {
 };
 
 
-// Watch for changes in searchFilter to update map markers
+// Watch the filtered list — refresh markers whenever the source data (csirtList
+// fetched from the API) or the current search filter changes. Deep watch
+// because we care about item shape changes, not just array identity.
+watch(filteredCsirts, () => {
+  updateMapMarkers();
+}, { deep: true });
 
 
+// Inline login — used by the Login tab. Reuses the loginUser Vuex action
+// (same one the standalone Login.vue page uses), so this is just a thinner
+// entry point that keeps the user on the map.
+const onInlineLogin = async () => {
+  authError.value = "";
+  if (!loginData.value.email || !loginData.value.password) {
+    authError.value = "Email and password are required.";
+    return;
+  }
+  isAuthLoading.value = true;
+  try {
+    const ok = await store.dispatch("loginUser", loginData.value);
+    if (ok) {
+      loginData.value = { email: "", password: "" };
+      // Refetch the CSIRT list now that we have a token — the anonymous fetch
+      // on mount may have returned less data (or nothing) depending on the
+      // backend's read policy for guests. Await so markers are drawn on the
+      // fresh, authenticated dataset.
+      await store.dispatch("getCsirtList");
+      // Redraw markers so popups switch to the richer variant (name + description)
+      // and unlocked panels render descriptions.
+      updateMapMarkers();
+      tab.value = 1; // land back on the Location tab so the user sees the unlocked list
+    } else {
+      authError.value = "Invalid credentials.";
+    }
+  } catch (err) {
+    console.error("Inline login failed:", err);
+    authError.value = "Something went wrong. Try again.";
+  } finally {
+    isAuthLoading.value = false;
+  }
+};
 
-// Se déconneter
-
-const onLogoutOut = ()=>{
-    localStorage.removeItem('token');
-
-    router.push(
-      { "name": "Login" }
-    )
-}
+// Logout stays on the Welcome page — no redirect. Clears the token so the
+// tab label flips back to "Login" and the gated content re-hides.
+const onLogoutOut = () => {
+  localStorage.removeItem("token");
+  store.commit("setLoggedUserToken", "");
+  // Redraw markers so popups drop the description again for guest mode.
+  updateMapMarkers();
+  tab.value = 1;
+};
 </script>
 
 <style  scoped>
